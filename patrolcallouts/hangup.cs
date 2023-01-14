@@ -82,6 +82,17 @@ namespace patrolcallouts
             catch { }
         }
 
+        public override void OnCancelBefore()
+        {
+            base.OnCancelBefore();
+
+            try
+            {
+                if (caller.IsAlive && !caller.IsCuffed) { caller.Task.WanderAround(); caller.AlwaysKeepTask = false; caller.BlockPermanentEvents = false; }
+            }
+            catch { }
+        }
+
         private void ShowNotification(string msg, string sender = "Dispatch", string subject = "Callout Update")
         {
             ShowNetworkedNotification(msg, "CHAR_CALL911", "CHAR_CALL911", sender, subject, 1f);
