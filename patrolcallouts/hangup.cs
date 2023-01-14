@@ -103,17 +103,25 @@ namespace patrolcallouts
             try
             {
                 // Coordinates
-                JObject _Coordinates = JObject.Parse(LoadResourceFile(GetCurrentResourceName(), "/plugins/patrolcallouts/coordinates.json"));
-                // Get the coordinates
-                foreach (var _location in _Coordinates["locations"])
+                JObject config = JObject.Parse(LoadResourceFile(GetCurrentResourceName(), "/callouts/patrolcallouts/config.json"));
+                JToken coords = config["hangup"];
+                if (coords["locations"] != null)
                 {
-                    string[] location = ((string)_location).Split(',');
-                    float.TryParse(location[0], out float locationX);
-                    float.TryParse(location[1], out float locationY);
-                    float.TryParse(location[2], out float locationZ);
+                    // Get the coordinates
+                    foreach (var _location in coords["locations"])
+                    {
+                        string[] location = ((string)_location).Split(',');
+                        float.TryParse(location[0], out float locationX);
+                        float.TryParse(location[1], out float locationY);
+                        float.TryParse(location[2], out float locationZ);
 
-                    calloutLocations.Add(new Vector3(locationX, locationY, locationZ));
+                        calloutLocations.Add(new Vector3(locationX, locationY, locationZ));
+                    }
                 }
+                else
+                {
+                    Debug.WriteLine("~r~[Patrol Callouts]~w~ Couldn't load locations!");
+                }    
             }
             catch (Exception e)
             {
