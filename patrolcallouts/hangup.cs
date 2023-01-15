@@ -50,33 +50,32 @@ namespace patrolcallouts
         {
             base.OnStart(AssignedPlayers.FirstOrDefault());
             Ped unit = AssignedPlayers.FirstOrDefault();
-            float distance = World.GetDistance(AssignedPlayers.FirstOrDefault().Position, Location);
-            PlayerData udata = Utilities.GetPlayerData();
+            string badge = Utilities.GetPlayerData().Callsign;
 
             try
             {
                 int x = rnd.Next(1, 100);
                 if (x < 90)
                 {
+                    int heading = rnd.Next(1, 360);
                     caller = await SpawnPed(RandomUtils.GetRandomPed(), Location);
                     caller.BlockPermanentEvents = true;
                     caller.AlwaysKeepTask = true;
+                    caller.Heading = heading;
                     caller.Task.PlayAnimation("amb@code_human_cross_road@male@idle_a", "idle_e");
                     PedData pdata = await caller.GetData();
                     
                     
 
-                    while (distance > 30f) { await BaseScript.Delay(250); }
+                    while (World.GetDistance(AssignedPlayers.FirstOrDefault().Position, Location) > 30f) { await BaseScript.Delay(250); }
                     string fname = pdata.FirstName;
                     string lname = pdata.LastName;
-                    string uname = udata.DisplayName;
-                    ShowNotification($"{uname} the registered owner of the phone is {fname} {lname}");
+                    ShowNotification($"{badge} the registered owner of the phone is {fname} {lname}");
                 }
                 else
                 {
-                    while (distance > 30f) { await BaseScript.Delay(250); }
-                    string uname = udata.DisplayName;
-                    ShowNotification($"{uname} we were unable to trace the number, recommend returning 10-8");
+                    while (World.GetDistance(AssignedPlayers.FirstOrDefault().Position, Location) > 30f) { await BaseScript.Delay(250); }
+                    ShowNotification($"{badge} we were unable to trace the number, recommend returning 10-8");
                 }
             }
             catch { }
