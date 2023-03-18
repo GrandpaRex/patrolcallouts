@@ -61,6 +61,7 @@ namespace patrolcallouts
                     _caller.AlwaysKeepTask = true;
                     _caller.Heading = heading;
                     _caller.Task.PlayAnimation("amb@code_human_cross_road@male@idle_a", "idle_e");
+                    await Questions();
                     var pdata = await _caller.GetData();
                     
                     
@@ -74,6 +75,8 @@ namespace patrolcallouts
                 {
                     while (World.GetDistance(unit.Position, Location) > 30f) { await BaseScript.Delay(250); }
                     ShowNotification($"{badge} we were unable to trace the number, recommend returning 10-8");
+                    await BaseScript.Delay(500);
+                    EndCallout();
                 }
             }
             catch { EndCallout(); }
@@ -95,8 +98,70 @@ namespace patrolcallouts
         {
             ShowNetworkedNotification(msg, "CHAR_CALL911", "CHAR_CALL911", sender, subject, 1f);
         }
+        
+        private async Task Questions()
+        {
+            var question1 = new PedQuestion
+            {
+                Question = "Did you call 911?",
+                Answers = new List<string>
+                {
+                    "Yes",
+                    "Yes",
+                    "No",
+                    "I have no idea what you're talking about",
+                    "Leave me alone!"
+                }
+            };
 
-        internal async Task LoadConfig()
+            var question2 = new PedQuestion
+            {
+                Question = "[Denied] We traced the phone back to your name",
+                Answers = new List<string>
+                {
+                    "Okay fine it was me",
+                    "Okay fine it was me",
+                    "You can't do that",
+                    "That's illegal!"
+                }
+            };
+
+            var question3 = new PedQuestion
+            {
+                Question = "Why did you hang up on our operator?",
+                Answers = new List<string>
+                {
+                    "I got scared!",
+                    "I thought he was going to come after me",
+                    "*Silence*"
+                }
+            };
+
+            var question4 = new PedQuestion
+            {
+                Question = "Is there something you want to tell me?",
+                Answers = new List<string>
+                {
+                    "*Silence*",
+                    "*Silence*",
+                    "*Silence*",
+                    "Just some guy, he was kinda being an ass to me. I want my lawyer",
+                    "No nothing at all *looks at the ground*"
+                }
+            };
+
+            PedQuestion[] pedQuestions = new PedQuestion[]
+            {
+                question1,
+                question2,
+                question3,
+                question4
+            };
+
+            AddPedQuestions(_caller, pedQuestions);
+        }
+
+        private async Task LoadConfig()
         {
             try
             {
