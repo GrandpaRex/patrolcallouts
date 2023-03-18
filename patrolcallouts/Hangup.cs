@@ -1,29 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using CitizenFX.Core;
 using static CitizenFX.Core.Native.API;
 using FivePD.API;
 using FivePD.API.Utils;
 using Newtonsoft.Json.Linq;
-using System.Xml.Linq;
 
 #pragma warning disable 1998
 namespace patrolcallouts
 {
     [CalloutProperties(name: "911 Hangup", author: "Grandpa Rex", version: "1.0")]
-    public class hangup : Callout
+    public class Hangup : Callout
     {
-        private Ped caller;
-        private readonly Random rnd = new Random();
-        internal List<Vector3> calloutLocations = new List<Vector3>();
+        private Ped _caller;
+        private readonly Random _rnd = new Random();
+        private List<Vector3> _calloutLocations = new List<Vector3>();
 
-        public hangup()
+        public Hangup()
         {
             _ = LoadConfig();
-            InitInfo(calloutLocations.SelectRandom());
+            InitInfo(_calloutLocations.SelectRandom());
 
             ShortName = "911 Hangup";
             CalloutDescription = "A number that dialed 911 hung up on dispatch";
@@ -46,39 +44,39 @@ namespace patrolcallouts
             }
         }
 
-        public async override void OnStart(Ped player)
+        public override async void OnStart(Ped player)
         {
             base.OnStart(AssignedPlayers.FirstOrDefault());
-            Ped unit = AssignedPlayers.FirstOrDefault();
-            string badge = Utilities.GetPlayerData().Callsign;
+            var unit = AssignedPlayers.FirstOrDefault();
+            var badge = Utilities.GetPlayerData().Callsign;
 
             try
             {
-                int x = rnd.Next(1, 100);
+                var x = _rnd.Next(1, 100);
                 if (x < 90)
                 {
-                    int heading = rnd.Next(1, 360);
-                    caller = await SpawnPed(RandomUtils.GetRandomPed(), Location);
-                    caller.BlockPermanentEvents = true;
-                    caller.AlwaysKeepTask = true;
-                    caller.Heading = heading;
-                    caller.Task.PlayAnimation("amb@code_human_cross_road@male@idle_a", "idle_e");
-                    PedData pdata = await caller.GetData();
+                    var heading = _rnd.Next(1, 360);
+                    _caller = await SpawnPed(RandomUtils.GetRandomPed(), Location);
+                    _caller.BlockPermanentEvents = true;
+                    _caller.AlwaysKeepTask = true;
+                    _caller.Heading = heading;
+                    _caller.Task.PlayAnimation("amb@code_human_cross_road@male@idle_a", "idle_e");
+                    var pdata = await _caller.GetData();
                     
                     
 
-                    while (World.GetDistance(AssignedPlayers.FirstOrDefault().Position, Location) > 30f) { await BaseScript.Delay(250); }
-                    string fname = pdata.FirstName;
-                    string lname = pdata.LastName;
+                    while (World.GetDistance(unit.Position, Location) > 30f) { await BaseScript.Delay(250); }
+                    var fname = pdata.FirstName;
+                    var lname = pdata.LastName;
                     ShowNotification($"{badge} the registered owner of the phone is {fname} {lname}");
                 }
                 else
                 {
-                    while (World.GetDistance(AssignedPlayers.FirstOrDefault().Position, Location) > 30f) { await BaseScript.Delay(250); }
+                    while (World.GetDistance(unit.Position, Location) > 30f) { await BaseScript.Delay(250); }
                     ShowNotification($"{badge} we were unable to trace the number, recommend returning 10-8");
                 }
             }
-            catch { }
+            catch { EndCallout(); }
         }
 
         public override void OnCancelBefore()
@@ -87,9 +85,10 @@ namespace patrolcallouts
 
             try
             {
-                if (caller.IsAlive && !caller.IsCuffed) { caller.Task.WanderAround(); caller.AlwaysKeepTask = false; caller.BlockPermanentEvents = false; }
+                if (!_caller.IsAlive || _caller.IsCuffed) return;
+                _caller.Task.WanderAround(); _caller.AlwaysKeepTask = false; _caller.BlockPermanentEvents = false;
             }
-            catch { }
+            catch { EndCallout(); }
         }
 
         private void ShowNotification(string msg, string sender = "Dispatch", string subject = "Callout Update")
@@ -102,19 +101,19 @@ namespace patrolcallouts
             try
             {
                 // Coordinates
-                JObject config = JObject.Parse(LoadResourceFile(GetCurrentResourceName(), "/callouts/patrolcallouts/config.json"));
-                JToken coords = config["hangup"];
+                var config = JObject.Parse(LoadResourceFile(GetCurrentResourceName(), "/callouts/patrolcallouts/config.json"));
+                var coords = config["hangup"];
                 if (coords["locations"] != null)
                 {
                     // Get the coordinates
                     foreach (var _location in coords["locations"])
                     {
                         string[] location = ((string)_location).Split(',');
-                        float.TryParse(location[0], out float locationX);
-                        float.TryParse(location[1], out float locationY);
-                        float.TryParse(location[2], out float locationZ);
+                        float.TryParse(location[0], out var locationX);
+                        float.TryParse(location[1], out var locationY);
+                        float.TryParse(location[2], out var locationZ);
 
-                        calloutLocations.Add(new Vector3(locationX, locationY, locationZ));
+                        _calloutLocations.Add(new Vector3(locationX, locationY, locationZ));
                     }
                 }
                 else
