@@ -30,7 +30,6 @@ namespace patrolcallouts
             ResponseCode = 2;
             StartDistance = 100f;
             FixedLocation = false;
-
         }
 
         public override async Task OnAccept()
@@ -39,6 +38,7 @@ namespace patrolcallouts
             {
                 InitBlip(30f, BlipColor.Green, BlipSprite.BigCircleOutline, 200);
                 UpdateData();
+                RequestAnimDict("amb@code_human_cross_road@male@idle_a");
             }
             catch
             {
@@ -120,6 +120,8 @@ namespace patrolcallouts
                 else
                 {
                     Debug.WriteLine("~r~[Patrol Callouts]~w~ Couldn't load locations!");
+                    ShowNotification("The caller has called back and informed us that everything is okay!");
+                    EndCallout();
                 }    
             }
             catch (Exception e)
